@@ -1,32 +1,27 @@
 // components/MarkdownPreview.tsx
 
 import ReactMarkdown from 'react-markdown';
-import { createStarryNight, common } from '@wooorm/starry-night';
-import { toJsxRuntime } from 'hast-util-to-jsx-runtime';
-import { Fragment, jsx, jsxs } from 'react/jsx-runtime';
-import rehypeStarryNight from 'rehype-starry-night';
-import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
 import remarkToc from 'remark-toc';
+import rehypeSlug from 'rehype-slug';
+import 'highlight.js/styles/github-dark.css';
 import React from 'react';
-
-// Initialize starry night with common grammars
-const starryNight = await createStarryNight(common);
-
-type CodeProps = {
-  inline?: boolean;
-  className?: string;
-  children?: React.ReactNode;
-};
 
 export default function MarkdownPreview({ content }: { content: string }) {
   return (
     <div className="prose prose-slate dark:prose-invert max-w-none p-4">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, [remarkToc, { heading: 'Contents', maxDepth: 3 }]]}
-        rehypePlugins={[rehypeSlug, rehypeStarryNight]}
+        remarkPlugins={[
+          remarkGfm,
+          [remarkToc, { heading: 'Contents', maxDepth: 3 }]
+        ]}
+        rehypePlugins={[
+          rehypeHighlight,
+          rehypeSlug
+        ]}
         components={{
-          // Handle paragraphs containing block elements
+         // Handle paragraphs containing block elements
           p: ({ children, ...props }) => {
             const hasBlockElements = React.Children.toArray(children).some(
               (child) => React.isValidElement(child) && child.type === 'pre'
@@ -36,41 +31,6 @@ export default function MarkdownPreview({ content }: { content: string }) {
               <div {...props}>{children}</div>
             ) : (
               <p {...props}>{children}</p>
-            );
-          },
-          // Handle code blocks and inline code with proper typing
-          code: ({ inline, className, children, ...props }: CodeProps) => {
-            // Handle inline code (`code`)
-            if (inline) {
-              return (
-                <code
-                  className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-sm font-mono"
-                  {...props}
-                >
-                  {children}
-                </code>
-              );
-            }
-
-            // Handle code blocks (```code```)
-            const codeContent = children?.toString() || '';
-            const lang = className?.replace('language-', '') || 'text';
-            const highlighted = starryNight.highlight(codeContent, lang);
-
-            return (
-              <div className="relative my-4">
-                <div className="absolute right-2 top-2 flex gap-1">
-                  <button
-                    onClick={() => navigator.clipboard.writeText(codeContent)}
-                    className="bg-gray-700 text-gray-200 px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-                  {toJsxRuntime(highlighted, { Fragment, jsx, jsxs })}
-                </pre>
-              </div>
             );
           },
           h1: ({ id, ...props }) => (
@@ -94,7 +54,38 @@ export default function MarkdownPreview({ content }: { content: string }) {
               {...props}
             />
           ),
+          code: ({ inline, className, children, ...props }: { inline?: boolean, className?: string, children?: React.ReactNode }) => {
+            // Single backtick (`) wrapped code - inline
+            if (inline) {
+              return (
+                <code
+                  className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-sm font-mono"
+                  {...props}
+                >
+                  {children}
+                </code>
+              );
+            }
 
+            // Triple backtick (```) wrapped code - block
+            return (
+              <div className="relative my-4">
+                <div className="absolute right-2 top-2 flex gap-1">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(String(children))}
+                    className="bg-gray-700 text-gray-200 px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                </pre>
+              </div>
+            );
+          },
           table: (props) => (
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse" {...props} />
@@ -147,4 +138,3 @@ export default function MarkdownPreview({ content }: { content: string }) {
     </div>
   );
 }
-
