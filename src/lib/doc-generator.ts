@@ -36,17 +36,20 @@ export async function generateChangeDocumentation(
         ##  Purpose
         [1-2 sentence description of functionality]
 
-        ##  ${change.type === 'component' ? 'Props' : 'Parameters'}
-        [Format:
-        - name (Type${options.technicalDepth === 'detailed' ? ', required/optional' : ''}): Description${options.technicalDepth === 'detailed' ? '. Default: \`value\`' : ''}]
-
+         ## ${change.type === 'component' ? 'Props' : 'Parameters'}
+    [Format as plain text:
+    - name (Type${options.technicalDepth === 'detailed' ? ', required/optional' : ''}): Description${options.technicalDepth === 'detailed' ? '. Default: value' : ''}]
+    
+    
         ${options.includeExamples ? `## Usage Example
         \`\`\`${change.filePath.endsWith('.tsx') ? 'tsx' : 'typescript'}
         [Practical example showing import and basic usage]
         \`\`\`` : ''}
+        - Only use (\`\`\`) backtics for the Usage Example section, do not use anywhere else
 
         ##  Implementation
         [Key technical details${options.technicalDepth === 'detailed' ? ', algorithms, performance' : ''}]
+        -Do not use \` backtics
 
         ##  Notes
         [Important considerations like accessibility, edge cases]
@@ -61,9 +64,9 @@ export async function generateChangeDocumentation(
 
         Requirements:
         - Use clean markdown formatting
-        - Include emoji headings
         - Be concise but thorough
-        - Focus on practical developer needs`
+        - Focus on practical developer needs
+        - Only use (\`\`\`) backtics for the Usage Example section, do not use anywhere else`
       }],
       model: 'llama3-70b-8192',
       temperature: 0.3,
