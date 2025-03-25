@@ -1,10 +1,11 @@
 // app/(landing)/page.tsx
+
 import Link from 'next/link';
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen p-8">
-      <h1 className="text-4xl font-bold mb-6">My Awesome Project</h1>
+
 
       <section className="max-w-2xl mb-12">
         <p className="text-lg mb-4">
