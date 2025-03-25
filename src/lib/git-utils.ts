@@ -1,15 +1,17 @@
 import { execSync } from 'child_process';
 
-
 export function getChangedFiles(): string[] {
   try {
-    const output = execSync('git show --name-only --pretty=format: HEAD', {
-      encoding: 'utf-8'
+    // Method that works in both local and Vercel environments
+    const output = execSync('git log -1 --name-only --pretty=format:', {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore']
     });
+
     return output
       .trim()
       .split('\n')
-      .filter(Boolean)
+      .filter(line => line.trim().length > 0)
       .map(path => path.trim());
   } catch (error) {
     console.error('Error getting changed files:', error);
@@ -19,7 +21,18 @@ export function getChangedFiles(): string[] {
 
 export function getFileDiff(filePath: string): string {
   try {
-    // Manually escape the path by wrapping in single quotes
+    // Fallback method for Vercel
+    if (process.env.VERCEL) {
+      // In Vercel, we can use the provided environment variables
+      const commitSha = process.env.VERCEL_GIT_COMMIT_SHA;
+      if (!commitSha) return '';
+
+      return execSync(`git show ${commitSha} -- ${filePath}`, {
+        encoding: 'utf-8'
+      });
+    }
+
+    // Local development method
     const escapedPath = `'${filePath.replace(/'/g, "'\\''")}'`;
     return execSync(`git show HEAD -- ${escapedPath}`, {
       encoding: 'utf-8'
