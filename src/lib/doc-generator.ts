@@ -28,49 +28,71 @@ export async function generateChangeDocumentation(
     const response = await groq.chat.completions.create({
       messages: [{
         role: 'user',
-        content: `Generate comprehensive documentation in Markdown format for this ${change.type} with no emojis:
+        content: `Generate precise documentation for this code implementation. Analyze the actual code and provide specific details:
 
         ### File: ${change.filePath}
         ### Component/Function: ${change.name}
 
-        ##  Purpose
-        [1-2 sentence description of functionality]
+        ## Purpose
+        Analyze the code and describe:
+        - Its primary function and responsibilities
+        - Specific UI elements it renders (if applicable)
+        - Key dependencies it relies on
 
-         ## ${change.type === 'component' ? 'Props' : 'Parameters'}
-    [Format as plain text:
-    - name (Type${options.technicalDepth === 'detailed' ? ', required/optional' : ''}): Description${options.technicalDepth === 'detailed' ? '. Default: value' : ''}]
-    
-    
-        ${options.includeExamples ? `## Usage Example
+        ## ${change.type === 'component' ? 'Props' : 'Parameters'}
+        For each ${change.type === 'component' ? 'prop' : 'parameter'} found in the code:
+        - name (Type${options.technicalDepth === 'detailed' ? ', required/optional' : ''}): Purpose in the implementation
+        ${options.technicalDepth === 'detailed' ? '- Default value if specified' : ''}
+
+        ${options.includeExamples ? `## Usage Example 
         \`\`\`${change.filePath.endsWith('.tsx') ? 'tsx' : 'typescript'}
-        [Practical example showing import and basic usage]
+        // Show realistic usage with required imports
+        // Include any necessary context or parent components
         \`\`\`` : ''}
-        - Only use (\`\`\`) backtics for the Usage Example section, do not use anywhere else
 
-        ##  Implementation
-        [Key technical details${options.technicalDepth === 'detailed' ? ', algorithms, performance' : ''}]
-        -Do not use \` backtics
+        ## Implementation Analysis
+        [If any of these specific aspects are inapplicable to a change, then dont display that aspect]
+        Describe these specific aspects from the code only if they are applicable:
+        1. Key logic flows and control structures
+        2. State management (hooks, context, etc.)
+        3. Important side effects or API calls
+        4. Performance considerations
+        5. Unique implementation details
 
-        ##  Notes
-        [Important considerations like accessibility, edge cases]
+        ## Notes
+        Document:
+        - Any assumptions the code makes
+        - Accessibility considerations
+        - Error handling approaches
+        - Known limitations or edge cases
 
-        ##  Change Summary
-        [Recent modifications and why they were made]
+        ## Change History
+        [If change history is available, otherwise omit this section]
 
-        Code being documented:
+        Actual Code Being Documented:
         \`\`\`${change.filePath.endsWith('.tsx') ? 'tsx' : 'typescript'}
         ${change.code}
         \`\`\`
 
-        Requirements:
-        - Use clean markdown formatting
-        - Be concise but thorough
-        - Focus on practical developer needs
-        - Only use (\`\`\`) backtics for the Usage Example section, do not use anywhere else`
+        Strict Requirements:
+        1. Only use triple backticks (\`\`\`) for code examples
+        2. You will never use single backticks (\`) for variables/props. 
+        3. Be specific to this implementation - no generic descriptions
+        4. Mention exact UI elements, hooks, and patterns used
+        5. Format parameters/props as plain text lists with - bullets
+        6. If you decide to omit a section, you will not mention its heading
+            You will NOT display the heading in the following manner , you will just skip that heading instead
+            "Change History
+            [Not available]"  
+        7. You will display all identifiers in bold      
+ `
+
+
+
       }],
       model: 'llama3-70b-8192',
-      temperature: 0.3,
-      max_tokens: 1500
+      temperature: 0.3,  // Lower temperature for more focused output
+      max_tokens: 2000   // Increased for more detailed analysis
     });
 
     const rawContent = response.choices[0]?.message?.content || '';
@@ -82,7 +104,7 @@ export async function generateChangeDocumentation(
 
   } catch (error) {
     console.error(`Documentation generation failed for ${change.name}:`, error);
-    return `## Documentation Generation Error\nCould not generate docs for ${change.name}. Please check the implementation manually.\n\n\`\`\`typescript\n${change.code}\n\`\`\``;
+    return `## Documentation Generation Error\nCould not generate docs for ${change.name}. Please check the implementation manually.\n\n${change.code}`;
   }
 }
 
@@ -90,8 +112,5 @@ function formatDocumentation(content: string): string {
   return content
     .replace(/^#\s+/gm, '## ')
     .replace(/^##\s+/gm, '### ')
-    // .replace(/```(\s*\n)/g, (match) =>
-    //   match.includes('tsx') || match.includes('typescript') ? match : '```typescript\n'
-    // )
     .replace(/\n{3,}/g, '\n\n'); // Remove excessive newlines
 }

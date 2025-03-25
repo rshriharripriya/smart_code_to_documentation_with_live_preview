@@ -3,9 +3,8 @@ import { execSync } from 'child_process';
 
 export function getChangedFiles(): string[] {
   try {
-    const output = execSync('git diff --name-only HEAD', {
-      encoding: 'utf-8',
-      stdio: ['ignore', 'pipe', 'ignore'] // Ignore stderr
+    const output = execSync('git show --name-only --pretty=format: HEAD', {
+      encoding: 'utf-8'
     });
     return output
       .trim()
@@ -22,7 +21,7 @@ export function getFileDiff(filePath: string): string {
   try {
     // Manually escape the path by wrapping in single quotes
     const escapedPath = `'${filePath.replace(/'/g, "'\\''")}'`;
-    return execSync(`git diff HEAD -- ${escapedPath}`, {
+    return execSync(`git show HEAD -- ${escapedPath}`, {
       encoding: 'utf-8'
     });
   } catch (error) {
