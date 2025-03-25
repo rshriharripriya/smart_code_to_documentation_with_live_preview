@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'My Project',
+  title: 'Auto documentation',
   description: 'Automated documentation for your code changes',
 };
 
@@ -26,7 +26,7 @@ export default function RootLayout({
         
         {/* Optional: Add footer or other global elements here */}
         <footer className="py-6 border-t mt-12 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} My Project. All rights reserved.
+          © {new Date().getFullYear()} Shri Harri Priya Ramesh. All rights reserved.
         </footer>
       </body>
     </html>
