@@ -8,14 +8,18 @@ export function getChangedFiles(): string[] {
       stdio: ['ignore', 'pipe', 'ignore']
     });
 
-    return output
+    const files = output
       .trim()
       .split('\n')
       .filter(line => line.trim().length > 0)
       .map(path => path.trim());
+
+    // Explicitly ensure we return an array
+    return Array.isArray(files) ? files : [];
+
   } catch (error) {
     console.error('Error getting changed files:', error);
-    return [];
+    return []; // Always return an array even on error
   }
 }
 
