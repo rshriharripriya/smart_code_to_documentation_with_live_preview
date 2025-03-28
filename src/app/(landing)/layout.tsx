@@ -10,7 +10,7 @@ export default function LandingLayout({
       <nav className="p-4 border-b">
         <Link href="/" className="font-bold text-xl">My Project</Link>
           <p>Commit: {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0,7)}</p>
-      <p>Branch: {process.env.NEXT_PUBLIC_VERCEL_GIT_BRANCH}</p>
+      <p>Branch: {process.env.main}</p>
       </nav>
       {children}
     </div>
